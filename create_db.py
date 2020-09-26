@@ -5,19 +5,9 @@ def create_db():
     conn = sqlite3.connect(BASE)
     cursor = conn.cursor()
 
-    cursor.execute("""CREATE TABLE brand
-                        (brand_name primary key , brand_id integer)
-                    """)
-    cursor.execute("""CREATE TABLE model
-                            (model_name primary key)
-                        """)
-    cursor.execute("""CREATE TABLE engine
-                            (engine_name text primary key)
-                        """)
-
     cursor.execute("""CREATE TABLE parts
                             (part primary key,
-                             description,
+                             description blob,
                              cost integer ,
                              image)
                         """)

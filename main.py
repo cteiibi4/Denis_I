@@ -38,8 +38,8 @@ def create_part():
                         part_number = part.get('Partno')
                         part_image = f'{ADDRESS_IMAGE}{part.get("AssetName")}'
                         part_cost = part.get('userPrice')
-                        part_description = part
-                        add_part(part_number,part_description, part_cost, part_image)
+                        part_description = json.dumps(part)
+                        add_part(part_number, part_description, part_cost, part_image)
                         add_applicability(id_car, part_number)
 
 

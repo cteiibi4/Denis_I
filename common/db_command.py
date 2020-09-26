@@ -39,7 +39,7 @@ def add_car(year, engine, brand, model):
 
 def add_part(part, description, cost, image):
     request_add_part = f'''INSERT INTO parts(part, description, cost, image)
-                            VALUES ('{part}', ({description}), {cost}, '{image}')'''
+                            VALUES ('{part}', '{description}', {cost}, '{image}')'''
     sql_massage(request_add_part)
 
 

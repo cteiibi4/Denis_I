@@ -12,16 +12,23 @@ def sql_massage(sql_request):
 
 
 def add_car(year, engine, brand, model, status):
-    try:
-        request_add_car = f'''INSERT INTO car(year, brand_car, model_car, engine_car, status)
-                                                VALUES({year}, '{brand}', '{model}', '{engine}', {status})'''
-        answer = sql_massage(request_add_car)
-    except sqlite3.IntegrityError:
+    request_check_car = f'''SELECT id FROM car WHERE brand_car = '{brand}' AND model_car = '{model}' AND 
+                                                        engine_car = '{engine}' AND year={year}'''
+    conn = sqlite3.connect(BASE)
+    cursor = conn.cursor()
+    cursor.execute(request_check_car)
+    check = cursor.fetchone()
+    conn.commit()
+    if check is not None:
         request_update_car = f'''UPDATE car SET year={year}, brand_car = '{brand}',
-                                                model_car = '{model}', engine_car = '{engine}'
-                                                WHERE brand_car = '{brand}' AND model_car = '{model}' AND 
-                                                engine_car = '{engine}' AND year={year}'''
+                                                            model_car = '{model}', engine_car = '{engine}'
+                                                            WHERE brand_car = '{brand}' AND model_car = '{model}' AND 
+                                                            engine_car = '{engine}' AND year={year}'''
         answer = sql_massage(request_update_car)
+    else:
+        request_add_car = f'''INSERT INTO car(year, brand_car, model_car, engine_car, status)
+                                                            VALUES({year}, '{brand}', '{model}', '{engine}', {status})'''
+        answer = sql_massage(request_add_car)
     return answer
 
 

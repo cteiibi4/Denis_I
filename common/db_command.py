@@ -33,11 +33,17 @@ def add_car(year, engine, brand, model, status):
 
 
 def add_part(part, description, cost, image):
-    try:
+    request_check_car = f'''SELECT part FROM parts WHERE part = "{part}"'''
+    conn = sqlite3.connect(BASE)
+    cursor = conn.cursor()
+    cursor.execute(request_check_car)
+    check = cursor.fetchone()
+    conn.commit()
+    if check is None:
         request_add_part = f'''INSERT INTO parts(part, description, cost, image)
                                 VALUES ('{part}', '{description}', {cost}, '{image}')'''
         sql_massage(request_add_part)
-    except sqlite3.IntegrityError:
+    else:
         request_update_part = f'''UPDATE parts SET part = '{part}', description = '{description}',
                                     cost = {cost}, image = '{image}'
                                     WHERE part = "{part}"'''

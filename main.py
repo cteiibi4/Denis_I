@@ -47,6 +47,7 @@ def create_part():
                                         add_part(part_number, part_description, part_cost, part_image)
                                         add_applicability(id_car, part_number)
                                     update_status(id_car, 1)
+                                    data = None
     update_all_status()
 
 

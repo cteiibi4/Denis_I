@@ -5,45 +5,62 @@ from common.common import BASE
 def sql_massage(sql_request):
     conn = sqlite3.connect(BASE)
     cursor = conn.cursor()
-    try:
-        cursor.execute(sql_request)
-    except sqlite3.IntegrityError:
-        pass
+    cursor.execute(sql_request)
     result = cursor.lastrowid
     conn.commit()
     return result
 
 
-# def add_brand(brand_name, brand_id):
-#     request_add_brand = f'''INSERT INTO brand
-#                             values ({brand_name}, {brand_id})'''
-#     sql_massage(request_add_brand)
-#
-#
-# def add_model(model_name):
-#     request_add_model = f'''INSERT INTO model SET {model_name}'''
-#     sql_massage(request_add_model)
-#
-#
-# def add_engine(engine):
-#     request_add_engine = f'''INSERT INTO engine SET {engine}'''
-#     sql_massage(request_add_engine)
-
-
-def add_car(year, engine, brand, model):
-    request_add_car = f'''INSERT INTO car(year, brand_car, model_car, engine_car)
-                            VALUES({year}, '{brand}', '{model}', '{engine}')'''
-    answer = sql_massage(request_add_car)
+def add_car(year, engine, brand, model, status):
+    try:
+        request_add_car = f'''INSERT INTO car(year, brand_car, model_car, engine_car, status)
+                                                VALUES({year}, '{brand}', '{model}', '{engine}', {status})'''
+        answer = sql_massage(request_add_car)
+    except sqlite3.IntegrityError:
+        request_update_car = f'''UPDATE car SET year={year}, brand_car = '{brand}',
+                                                model_car = '{model}', engine_car = '{engine}'
+                                                WHERE brand_car = '{brand}' AND model_car = '{model}' AND 
+                                                engine_car = '{engine}' AND year={year}'''
+        answer = sql_massage(request_update_car)
     return answer
 
 
 def add_part(part, description, cost, image):
-    request_add_part = f'''INSERT INTO parts(part, description, cost, image)
-                            VALUES ('{part}', '{description}', {cost}, '{image}')'''
-    sql_massage(request_add_part)
+    try:
+        request_add_part = f'''INSERT INTO parts(part, description, cost, image)
+                                VALUES ('{part}', '{description}', {cost}, '{image}')'''
+        sql_massage(request_add_part)
+    except sqlite3.IntegrityError:
+        request_update_part = f'''UPDATE parts SET part = '{part}', description = '{description}',
+                                    cost = {cost}, image = '{image}'
+                                    WHERE part = "{part}"'''
+        sql_massage(request_update_part)
 
 
 def add_applicability(id_car, part):
-    request_add_applicability = f'''INSERT INTO applicability
-                            values ({id_car}, '{part}')'''
-    sql_massage(request_add_applicability)
+    try:
+        request_add_applicability = f'''INSERT INTO applicability
+                                values ({id_car}, '{part}')'''
+        sql_massage(request_add_applicability)
+    except sqlite3.IntegrityError:
+        pass
+
+
+def update_status(id_car, status):
+    request_update_status = f'''UPDATE car SET status = {status} WHERE id = {id_car}'''
+    sql_massage(request_update_status)
+
+def update_all_status():
+    request_update_all_status = f'''UPDATE car SET status = 0'''
+    sql_massage(request_update_all_status)
+
+
+def check_start_id():
+    conn = sqlite3.connect(BASE)
+    cursor = conn.cursor()
+    request_check_1st = f'''SELECT * from car WHERE status = 0'''
+    cursor.execute(request_check_1st)
+    data = cursor.fetchone()
+    conn.commit()
+    return data
+

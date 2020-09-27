@@ -18,6 +18,7 @@ def create_db():
                             engine_car,
                             brand_car,
                             model_car,
+                            status integer,
                             foreign key (engine_car) references engine(engine_name),  
                             foreign key (brand_car) references brand(brand_name), 
                             foreign key (model_car) references model(model_name))

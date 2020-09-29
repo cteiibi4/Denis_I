@@ -1,6 +1,6 @@
 import requests
 import json
-from create_db import init_db
+from common.create_db import init_db
 from common.db_command import add_car, add_part, add_applicability, update_status, update_all_status, check_start_id,\
     add_image
 from common.common import ADDRESS_FOR_YEAR, ADDRESS_MAKE, ADDRESS_MODEL, ADDRESS_ENGINE, ADDRESS_PARTS, ADDRESS_IMAGE,\
@@ -18,10 +18,11 @@ def take_data(address):
 
 
 def create_dict(arg, str_parce):
-    if len(arg.get(str_parce)[1:-1]) > 0:
-        first_data = json.loads(arg.get(str_parce)[1:-1])
-    else:
-        result = {}
+    result = {}
+    data = json.loads(arg.get(str_parce))
+    if len(data) > 0:
+        for i in data:
+            result.update(i)
     return result
 
 

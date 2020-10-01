@@ -9,7 +9,8 @@ def init_db():
     cursor.execute("""CREATE TABLE IF NOT EXISTS parts
                             (part primary key,
                              description blob,
-                             cost integer)
+                             cost integer,
+                             update_date)
                         """)
 
     cursor.execute("""CREATE TABLE IF NOT EXISTS car
@@ -25,11 +26,11 @@ def init_db():
                         """)
 
     cursor.execute("""CREATE TABLE IF NOT EXISTS image
-                            (id integer primary key AUTOINCREMENT,
-                            part,
-                            image,
-                            foreign key (part) references parts(part))
-                        """)
+                                (id integer primary key AUTOINCREMENT,
+                                part,
+                                image,
+                                foreign key (part) references parts(part))
+                            """)
 
     cursor.execute("""CREATE TABLE IF NOT EXISTS applicability
                             (car,

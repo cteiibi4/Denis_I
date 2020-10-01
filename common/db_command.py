@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 from common.common import BASE
 
 
@@ -20,6 +21,12 @@ def check_row(request_check_row):
     return check
 
 
+def check_date(last_date):
+    date_now = datetime.date(datetime.today())
+    date_update = datetime.date(datetime.strptime(last_date, '%Y-%m-%d'))
+    return abs(date_now - date_update).days
+
+
 def add_car(year, engine, brand, model, status):
     request_check_car = f'''SELECT id FROM car WHERE brand_car = '{brand}' AND model_car = '{model}' AND 
                                                         engine_car = '{engine}' AND year={year}'''
@@ -38,17 +45,21 @@ def add_car(year, engine, brand, model, status):
 
 
 def add_part(part, description, cost):
-    request_check_part = f'''SELECT part FROM parts WHERE part = "{part}"'''
+    request_check_part = f'''SELECT part, update_date FROM parts WHERE part = "{part}"'''
     check = check_row(request_check_part)
     if check is None:
-        request_add_part = f'''INSERT INTO parts(part, description, cost)
-                                VALUES ('{part}', '{description}', {cost})'''
+        request_add_part = f'''INSERT INTO parts(part, description, cost, update_date)
+                                VALUES ('{part}', '{description}', {cost}, "{datetime.today().strftime('%Y-%m-%d')}")'''
         sql_massage(request_add_part)
-    else:
+        return True
+    elif check_date(check[1]) >= 30:
         request_update_part = f'''UPDATE parts SET part = '{part}', description = '{description}',
-                                    cost = {cost}
-                                    WHERE part = "{part}"'''
+                                            cost = {cost}, update_date = "{datetime.today().strftime('%Y-%m-%d')}"
+                                            WHERE part = "{part}"'''
         sql_massage(request_update_part)
+        return True
+    else:
+        return False
 
 
 def add_applicability(id_car, part):

@@ -68,12 +68,13 @@ def create_part():
                                         part_description.update(part_attrresult)
                                         part_description.update(part_partresult)
                                         part_description = json.dumps(part)
-                                        add_part(part_number, part_description, part_cost)
+                                        answer_part = add_part(part_number, part_description, part_cost)
                                         add_applicability(id_car, part_number)
-                                        images = json.loads(part_data.get('str_Imageresult'))
-                                        for image in images:
-                                            address_image = f'{ADDRESS_IMAGE}{image.get("AssetName")}'
-                                            add_image(part_number, address_image)
+                                        if answer_part is True:
+                                            images = json.loads(part_data.get('str_Imageresult'))
+                                            for image in images:
+                                                address_image = f'{ADDRESS_IMAGE}{image.get("AssetName")}'
+                                                add_image(part_number, address_image)
                                     update_status(id_car, 1)
                                     data = None
     update_all_status()

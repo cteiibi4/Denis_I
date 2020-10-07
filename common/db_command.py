@@ -1,7 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 from .create_db import Car, Part, Image, engine_db
 from datetime import datetime
-from common.common import BASE
 
 
 def start_session():

@@ -1,8 +1,5 @@
 import requests
 import json
-from sqlalchemy.orm import sessionmaker
-import common.create_db as init_db
-from common.create_db import Car, Part, Image, engine_db
 from common.db_command import add_car, add_part, update_status, update_all_status, check_start_id,\
     add_image, start_session
 from common.common import ADDRESS_FOR_YEAR, ADDRESS_MAKE, ADDRESS_MODEL, ADDRESS_ENGINE, ADDRESS_PARTS, ADDRESS_IMAGE,\
@@ -55,7 +52,6 @@ def create_part():
                                     address_for_get_part = f'{ADDRESS_PARTS}yearid={current_year}&makeid={current_mark_id}&modelname={current_model}&enginepartno={current_engine_number}'
                                     parts_list = take_data(address_for_get_part)
                                     new_car = add_car(session, current_year, current_engine, current_mark, current_model, 0)
-                                    id_car = new_car.id
                                     print(f'СКанируем машину {current_mark}:{current_model} {current_year} '
                                           f'года, с двигателем : {current_engine}')
                                     for part in parts_list:
@@ -73,7 +69,6 @@ def create_part():
                                         part_description.update(part_partresult)
                                         part_description = json.dumps(part)
                                         answer_part = add_part(session, new_car, part_number, part_description, part_cost)
-                                        # add_applicability(id_car, part_number)
                                         if answer_part[1] is True:
                                             images = json.loads(part_data.get('str_Imageresult'))
                                             for image in images:

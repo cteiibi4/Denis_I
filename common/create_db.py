@@ -1,4 +1,3 @@
-import sqlite3
 from sqlalchemy import create_engine, Table, String, Boolean, Date, Column, Integer, BLOB, ForeignKey, MetaData
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -23,7 +22,8 @@ class Part(Enginetech):
     cars = relationship('Car',
                         secondary=association_table,
                         back_populates='parts')
-    images = relationship('Image')
+    # images = relationship('Image')
+    images = relationship('Image', back_populates='part')
 
     def __init__(self, part, description, cost, update_date):
         self.part = part
@@ -60,7 +60,8 @@ class Image(Enginetech):
     __tablename__ = 'image'
     id = Column(Integer, primary_key=True)
     image = Column(String)
-    part = Column(String, ForeignKey('parts.part'))
+    part = relationship('Part', back_populates='images')
+    part_id = Column(String, ForeignKey('parts.part'))
 
     def __init__(self, image):
         self.image = image

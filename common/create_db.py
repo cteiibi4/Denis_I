@@ -2,9 +2,9 @@ import sqlite3
 from sqlalchemy import create_engine, Table, String, Boolean, Date, Column, Integer, BLOB, ForeignKey, MetaData
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from common import BASE
+from .common import BASE
 
-engine = create_engine(f'sqlite:///{BASE}', echo=True)
+engine_db = create_engine(f'sqlite:///{BASE}', echo=True)
 
 Enginetech = declarative_base()
 
@@ -13,15 +13,16 @@ association_table = Table('applicability', Enginetech.metadata,
                           Column('part', String, ForeignKey('parts.part'))
                           )
 
+
 class Part(Enginetech):
     __tablename__ = 'parts'
     part = Column(String, primary_key=True)
-    description = Column(BLOB)
+    description = Column(String)
     cost = Column(Integer)
     update_date = Column(Date)
     cars = relationship('Car',
-                           secondary=association_table,
-                           back_populates='parts')
+                        secondary=association_table,
+                        back_populates='parts')
     images = relationship('Image')
 
     def __init__(self, part, description, cost, update_date):
@@ -41,8 +42,8 @@ class Car(Enginetech):
     model_car = Column(String)
     status = Column(Boolean)
     parts = relationship('Part',
-                            secondary=association_table,
-                            back_populates='cars')
+                         secondary=association_table,
+                         back_populates='cars')
 
     def __init__(self, year, engine_car, brand_car, model_car, status):
         self.year = year
@@ -61,46 +62,11 @@ class Image(Enginetech):
     image = Column(String)
     part = Column(String, ForeignKey('parts.part'))
 
-    def __init__(self, image, part):
+    def __init__(self, image):
         self.image = image
-        self.part = part
+        # self.part = part
 
 
-Enginetech.metadata.create_all(engine)
+Enginetech.metadata.create_all(engine_db)
 
-# conn = sqlite3.connect(BASE)
-# cursor = conn.cursor()
-#
-# cursor.execute("""CREATE TABLE IF NOT EXISTS parts
-#                         (part primary key,
-#                          description blob,
-#                          cost integer,
-#                          update_date)
-#                     """)
-#
-# cursor.execute("""CREATE TABLE IF NOT EXISTS car
-#                         (id integer primary key AUTOINCREMENT,
-#                         year integer,
-#                         engine_car,
-#                         brand_car,
-#                         model_car,
-#                         status integer,
-#                         foreign key (engine_car) references engine(engine_name),
-#                         foreign key (brand_car) references brand(brand_name),
-#                         foreign key (model_car) references model(model_name))
-#                     """)
-#
-# cursor.execute("""CREATE TABLE IF NOT EXISTS image
-#                             (id integer primary key AUTOINCREMENT,
-#                             part,
-#                             image,
-#                             foreign key (part) references parts(part))
-#                         """)
-#
-# cursor.execute("""CREATE TABLE IF NOT EXISTS applicability
-#                         (car,
-#                          part,
-#                          foreign key (car) references car(id),
-#                          foreign key (part) references parts(part))
-#                     """)
-# conn.commit()
+

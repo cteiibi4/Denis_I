@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from .common import BASE
 
-engine_db = create_engine(f'sqlite:///{BASE}', echo=True)
+engine_db = create_engine(f'sqlite:///{BASE}', echo=False)
 
 Enginetech = declarative_base()
 

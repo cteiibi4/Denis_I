@@ -51,7 +51,7 @@ def create_part():
                                 if data is None or data[2] == current_engine:
                                     address_for_get_part = f'{ADDRESS_PARTS}yearid={current_year}&makeid={current_mark_id}&modelname={current_model}&enginepartno={current_engine_number}'
                                     parts_list = take_data(address_for_get_part)
-                                    new_car = add_car(session, current_year, current_engine, current_mark, current_model, 0)
+                                    new_car = add_car(session, current_year, current_engine, current_mark, current_model, 1)
                                     print(f'СКанируем машину {current_mark}:{current_model} {current_year} '
                                           f'года, с двигателем : {current_engine}')
                                     for part in parts_list:
@@ -74,7 +74,7 @@ def create_part():
                                             for image in images:
                                                 address_image = f'{ADDRESS_IMAGE}{image.get("AssetName")}'
                                                 add_image(session, answer_part[0], address_image)
-                                    update_status(new_car, 1)
+                                    # update_status(new_car, 1)
                                     session.commit()
                                     data = None
     update_all_status(session)

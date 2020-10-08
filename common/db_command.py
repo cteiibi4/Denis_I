@@ -29,8 +29,7 @@ def check_date(last_date):
 
 
 def add_car(session, year, engine_car, brand, model, status):
-    check = check_object(session, Car, year=year, engine_car=engine_car, brand_car=brand, model_car=model,
-                         status=status)
+    check = check_object(session, Car, year=year, engine_car=engine_car, brand_car=brand, model_car=model)
     new_car = Car(year, engine_car, brand, model, status)
     if check is None:
         add_object(session, new_car)
@@ -80,6 +79,10 @@ def check_start_id(session):
     instance = session.query(Car).filter_by(status=0).first()
     if instance:
         data = [instance.id, instance.year, instance.engine_car, instance.brand_car, instance.model_car]
+    elif session.query(Car).all() is not None:
+        instance = session.query(Car).all()
+        a = instance[-1]
+        data = [a.id, a.year, a.engine_car, a.brand_car, a.model_car]
     else:
         data = None
     return data

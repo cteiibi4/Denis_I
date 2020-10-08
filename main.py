@@ -22,6 +22,8 @@ def take_data_get(address):
             print(f'Ошибка соеденения с адресом {address} попытка №{attempt}')
             time.sleep(60)
             attempt += 1
+    print(f'Нет доступа к адресу {address}')
+    exit(1)
 
 
 def take_data_post(address, dictionary):
@@ -37,6 +39,8 @@ def take_data_post(address, dictionary):
             print(f'Ошибка соеденения с адресом {address} попытка №{attempt}')
             time.sleep(60)
             attempt += 1
+    print(f'Нет доступа к адресу {address}')
+    exit(1)
 
 
 def create_dict(arg, str_parce):

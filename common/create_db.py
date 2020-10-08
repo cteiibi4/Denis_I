@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Table, String, Boolean, Date, Column, Integer, BLOB, ForeignKey, MetaData
+from sqlalchemy import create_engine, Table, String, Boolean, Date, Column, Integer, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from .common import BASE
@@ -9,13 +9,14 @@ Enginetech = declarative_base()
 
 association_table = Table('applicability', Enginetech.metadata,
                           Column('car', Integer, ForeignKey('cars.id')),
-                          Column('part', String, ForeignKey('parts.part'))
+                          Column('part', String, ForeignKey('parts.part')),
+                          UniqueConstraint('car', 'part')
                           )
 
 
 class Part(Enginetech):
     __tablename__ = 'parts'
-    part = Column(String, primary_key=True)
+    part = Column(String, primary_key=True, unique=True)
     description = Column(String)
     cost = Column(Integer)
     update_date = Column(Date)
@@ -44,6 +45,7 @@ class Car(Enginetech):
     parts = relationship('Part',
                          secondary=association_table,
                          back_populates='cars')
+    UniqueConstraint(year, engine_car, brand_car, model_car)
 
     def __init__(self, year, engine_car, brand_car, model_car, status):
         self.year = year

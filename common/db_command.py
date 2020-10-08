@@ -79,7 +79,7 @@ def check_start_id(session):
     instance = session.query(Car).filter_by(status=0).first()
     if instance:
         data = [instance.id, instance.year, instance.engine_car, instance.brand_car, instance.model_car]
-    elif session.query(Car).all() is not None:
+    elif len(session.query(Car).all()) > 1:
         instance = session.query(Car).all()
         a = instance[-1]
         data = [a.id, a.year, a.engine_car, a.brand_car, a.model_car]

@@ -8,31 +8,35 @@ from common.common import ADDRESS_FOR_YEAR, ADDRESS_MAKE, ADDRESS_MODEL, ADDRESS
 
 
 def take_data_get(address):
-    try:
-        response = requests.get(address)
-        rough_data = response.json()
+    attempt = 1
+    while attempt <= 20:
         try:
-            data = json.loads(rough_data)
-        except TypeError:
-            data = rough_data.get('list_partdetails')
-        return data
-    except ConnectionError:
-        print(f'Ошибка соеденения с адресом {address}')
-        time.sleep(60)
-        take_data_get(address)
+            response = requests.get(address)
+            rough_data = response.json()
+            try:
+                data = json.loads(rough_data)
+            except TypeError:
+                data = rough_data.get('list_partdetails')
+            return data
+        except ConnectionError:
+            print(f'Ошибка соеденения с адресом {address} попытка №{attempt}')
+            time.sleep(60)
+            attempt += 1
 
 
 def take_data_post(address, dictionary):
-    try:
-        response = requests.post(
-            address,
-            data=dictionary)
-        rough_part_data = response.content
-        return json.loads(rough_part_data)
-    except ConnectionError:
-        print(f'Ошибка соеденения с адресом {address}')
-        time.sleep(60)
-        take_data_post(address, dictionary)
+    attempt = 1
+    while attempt <= 20:
+        try:
+            response = requests.post(
+                address,
+                data=dictionary)
+            rough_part_data = response.content
+            return json.loads(rough_part_data)
+        except ConnectionError:
+            print(f'Ошибка соеденения с адресом {address} попытка №{attempt}')
+            time.sleep(60)
+            attempt += 1
 
 
 def create_dict(arg, str_parce):

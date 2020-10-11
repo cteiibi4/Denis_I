@@ -1,105 +1,88 @@
-import sqlite3
+from sqlalchemy.orm import sessionmaker
+from .create_db import Car, Part, Image, engine_db
 from datetime import datetime
-from common.common import BASE
 
 
-def sql_massage(sql_request):
-    conn = sqlite3.connect(BASE)
-    cursor = conn.cursor()
-    cursor.execute(sql_request)
-    result = cursor.lastrowid
-    conn.commit()
-    return result
+def start_session():
+    Session = sessionmaker(bind=engine_db)
+    session = Session()
+    return session
 
 
-def check_row(request_check_row):
-    conn = sqlite3.connect(BASE)
-    cursor = conn.cursor()
-    cursor.execute(request_check_row)
-    check = cursor.fetchone()
-    conn.commit()
-    return check
+def add_object(session, object_request):
+    new_object = object_request
+    session.add(new_object)
+
+
+def check_object(session, model, **kwargs):
+    instance = session.query(model).filter_by(**kwargs).first()
+    if instance:
+        return instance
+    else:
+        return None
 
 
 def check_date(last_date):
     date_now = datetime.date(datetime.today())
-    date_update = datetime.date(datetime.strptime(last_date, '%Y-%m-%d'))
-    return abs(date_now - date_update).days
+    # date_update = datetime.date(datetime.strptime(last_date, '%Y-%m-%d'))
+    return abs(date_now - last_date).days
 
 
-def add_car(year, engine, brand, model, status):
-    request_check_car = f'''SELECT id FROM car WHERE brand_car = '{brand}' AND model_car = '{model}' AND 
-                                                        engine_car = '{engine}' AND year={year}'''
-    check = check_row(request_check_car)
-    if check is not None:
-        request_update_car = f'''UPDATE car SET year={year}, brand_car = '{brand}',
-                                                            model_car = '{model}', engine_car = '{engine}'
-                                                            WHERE brand_car = '{brand}' AND model_car = '{model}' AND 
-                                                            engine_car = '{engine}' AND year={year}'''
-        answer = sql_massage(request_update_car)
-    else:
-        request_add_car = f'''INSERT INTO car(year, brand_car, model_car, engine_car, status)
-                                                            VALUES({year}, '{brand}', '{model}', '{engine}', {status})'''
-        answer = sql_massage(request_add_car)
-    return answer
-
-
-def add_part(part, description, cost):
-    request_check_part = f'''SELECT part, update_date FROM parts WHERE part = "{part}"'''
-    check = check_row(request_check_part)
+def add_car(session, year, engine_car, brand, model, status):
+    check = check_object(session, Car, year=year, engine_car=engine_car, brand_car=brand, model_car=model)
+    new_car = Car(year, engine_car, brand, model, status)
     if check is None:
-        request_add_part = f'''INSERT INTO parts(part, description, cost, update_date)
-                                VALUES ('{part}', '{description}', {cost}, "{datetime.today().strftime('%Y-%m-%d')}")'''
-        sql_massage(request_add_part)
-        return True
-    elif check_date(check[1]) >= 30:
-        request_update_part = f'''UPDATE parts SET part = '{part}', description = '{description}',
-                                            cost = {cost}, update_date = "{datetime.today().strftime('%Y-%m-%d')}"
-                                            WHERE part = "{part}"'''
-        sql_massage(request_update_part)
-        return True
+        add_object(session, new_car)
+        return new_car
     else:
-        return False
+        return check
 
 
-def add_applicability(id_car, part):
-    try:
-        request_add_applicability = f'''INSERT INTO applicability
-                                values ({id_car}, '{part}')'''
-        sql_massage(request_add_applicability)
-    except sqlite3.IntegrityError:
-        pass
-
-
-def add_image(part, image):
-    request_check_image = f'''SELECT id FROM image WHERE part = "{part}" AND image = "{image}"'''
-    check = check_row(request_check_image)
+def add_part(session, Car, part, description, cost):
+    date_now = datetime.date(datetime.today())
+    check = check_object(session, Part, part=part)
     if check is None:
-        request_add_image = f'''INSERT INTO image(part, image)
-                                    VALUES ('{part}', '{image}')'''
-        sql_massage(request_add_image)
+        new_part = Part(part, description, cost, date_now)
+        new_part.cars.append(Car)
+        add_object(session, new_part)
+        return new_part, True
     else:
-        request_update_image = f'''UPDATE image SET part = '{part}', image = '{image}'
-                                        WHERE part = '{part}' AND image = "{image}"'''
-        sql_massage(request_update_image)
+        update_date = check.update_date
+        if check_date(update_date) > 30:
+            check.update({Part.description: description, Part.cost: cost, Part.update_date: date_now},
+                         synchronize_session=False)
+            check.cars.append(Car)
+            return check, True
+        else:
+            check.cars.append(Car)
+            return check, False
 
 
-def update_status(id_car, status):
-    request_update_status = f'''UPDATE car SET status = {status} WHERE id = {id_car}'''
-    sql_massage(request_update_status)
+def add_image(session, Part, image):
+    new_image = Image(image)
+    # new_image.part.append(Part)
+    Part.images.append(new_image)
+    add_object(session, new_image)
 
 
-def update_all_status():
-    request_update_all_status = f'''UPDATE car SET status = 0'''
-    sql_massage(request_update_all_status)
+def update_status(car, status):
+    car.status = status
 
 
-def check_start_id():
-    conn = sqlite3.connect(BASE)
-    cursor = conn.cursor()
-    request_check_1st = f'''SELECT * from car WHERE status = 0'''
-    cursor.execute(request_check_1st)
-    data = cursor.fetchone()
-    conn.commit()
+def update_all_status(session):
+    for instance in session.query(Car):
+        instance.status = 0
+    session.commit()
+
+
+def check_start_id(session):
+    instance = session.query(Car).filter_by(status=0).first()
+    if instance:
+        data = [instance.id, instance.year, instance.engine_car, instance.brand_car, instance.model_car]
+    elif len(session.query(Car).all()) > 1:
+        instance = session.query(Car).all()
+        a = instance[-1]
+        data = [a.id, a.year, a.engine_car, a.brand_car, a.model_car]
+    else:
+        data = None
     return data
-

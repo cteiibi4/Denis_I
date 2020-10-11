@@ -18,7 +18,7 @@ def take_data_get(address):
             except TypeError:
                 data = rough_data.get('list_partdetails')
             return data
-        except ConnectionError:
+        except requests.exceptions.ConnectionError:
             print(f'Ошибка соеденения с адресом {address} попытка №{attempt}')
             time.sleep(60)
             attempt += 1
@@ -35,7 +35,7 @@ def take_data_post(address, dictionary):
                 data=dictionary)
             rough_part_data = response.content
             return json.loads(rough_part_data)
-        except ConnectionError:
+        except requests.exceptions.ConnectionError:
             print(f'Ошибка соеденения с адресом {address} попытка №{attempt}')
             time.sleep(60)
             attempt += 1

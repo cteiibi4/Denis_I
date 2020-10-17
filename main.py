@@ -1,8 +1,9 @@
 import requests
 import json
 import time
-from common.db_command import add_car, add_part, update_status, update_all_status, check_start_id,\
-    add_image, start_session
+from common.create_db import Part
+from common.db_command import add_car, add_part, check_object, update_all_status, check_start_id,\
+    add_image, start_session, check_date
 from common.common import ADDRESS_FOR_YEAR, ADDRESS_MAKE, ADDRESS_MODEL, ADDRESS_ENGINE, ADDRESS_PARTS, ADDRESS_IMAGE,\
     ADDRESS_PART
 
@@ -20,7 +21,7 @@ def take_data_get(address):
             return data
         except:
             print(f'Ошибка соеденения с адресом {address} попытка №{attempt}')
-            time.sleep(60)
+            time.sleep(1)
             attempt += 1
     print(f'Нет доступа к адресу {address}')
     exit(1)
@@ -37,7 +38,7 @@ def take_data_post(address, dictionary):
             return json.loads(rough_part_data)
         except:
             print(f'Ошибка соеденения с адресом {address} попытка №{attempt}')
-            time.sleep(60)
+            time.sleep(1)
             attempt += 1
     print(f'Нет доступа к адресу {address}')
     exit(1)
@@ -83,22 +84,26 @@ def create_part():
                                           f'года, с двигателем : {current_engine}')
                                     for part in parts_list:
                                         part_number = part.get('Partno')
-                                        part_cost = part.get('userPrice')
-                                        part_description = part
-                                        part_data = take_data_post(
-                                            ADDRESS_PART,
-                                            {'partno': part_number, 'partdescription': 'Valve - Intake'})
-                                        part_attrresult = create_dict(part_data, 'str_attrresult')
-                                        part_partresult = create_dict(part_data, 'str_Partresult')
-                                        part_description.update(part_attrresult)
-                                        part_description.update(part_partresult)
-                                        part_description = json.dumps(part)
-                                        answer_part = add_part(session, new_car, part_number, part_description, part_cost)
-                                        if answer_part[1] is True:
-                                            images = json.loads(part_data.get('str_Imageresult'))
-                                            for image in images:
-                                                address_image = f'{ADDRESS_IMAGE}{image.get("AssetName")}'
-                                                add_image(session, answer_part[0], address_image)
+                                        check_part = check_object(session, Part, part=part_number)
+                                        if check_part is None or check_date(check_part.update_date) > 30:
+                                            part_cost = part.get('userPrice')
+                                            part_description = part
+                                            part_data = take_data_post(
+                                                ADDRESS_PART,
+                                                {'partno': part_number, 'partdescription': 'Valve - Intake'})
+                                            part_attrresult = create_dict(part_data, 'str_attrresult')
+                                            part_partresult = create_dict(part_data, 'str_Partresult')
+                                            part_description.update(part_attrresult)
+                                            part_description.update(part_partresult)
+                                            description = json.dumps(part_description)
+                                            answer_part = add_part(session, new_car, part_number, description, part_cost)
+                                            if answer_part[1] is True:
+                                                images = json.loads(part_data.get('str_Imageresult'))
+                                                for image in images:
+                                                    address_image = f'{ADDRESS_IMAGE}{image.get("AssetName")}'
+                                                    add_image(session, answer_part[0], address_image)
+                                        else:
+                                            add_part(session, new_car, part_number, 0, 0)
                                     # update_status(new_car, 1)
                                     session.commit()
                                     data = None

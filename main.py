@@ -87,19 +87,19 @@ def create_part():
                                         check_part = check_object(session, Part, part=part_number)
                                         if check_part is None or check_date(check_part.update_date) > 30:
                                             part_cost = part.get('userPrice')
-                                            part_description = part
                                             part_data = take_data_post(
                                                 ADDRESS_PART,
-                                                {'partno': part_number, 'partdescription': 'Valve - Intake'})
+                                                {'partno': part_number, 'partdescription': part.get('partdescription')})
                                             # part_attrresult = create_dict(part_data, 'str_attrresult')
                                             # part_partresult = create_dict(part_data, 'str_Partresult')
                                             # part_description.update(part_attrresult)
                                             # part_description.update(part_partresult)
-                                            part_description.update(part_data)
+                                            # part_description.update(part_data)
                                             # part_description['attrs'] = create_dict(part_data, 'str_attrresult')
                                             # part_description['part'] = create_dict(part_data, 'str_Partresult')
                                             # part_description['interchange'] = create_dict(part_data, 'str_interchangeresult')
                                             # part_description['package'] = create_dict(part_data, 'str_packageresult')
+                                            part_description = {'part': part, 'data': part_data}
                                             description = json.dumps(part_description)
                                             answer_part = add_part(session, new_car, part_number, description, part_cost)
                                             if answer_part[1] is True:

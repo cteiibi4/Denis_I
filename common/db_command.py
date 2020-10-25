@@ -1,5 +1,6 @@
+from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
-from .create_db import Car, Part, Image, engine_db
+from .create_db import Car, Part, Image, Kit, engine_db
 from datetime import datetime
 
 
@@ -12,6 +13,20 @@ def start_session():
 def add_object(session, object_request):
     new_object = object_request
     session.add(new_object)
+
+
+def check_all_objects(session, model, **kwargs):
+    # new_kwargs = {}
+    # for key, value in kwargs.items():
+    #     new_key = func.lower(key)
+    #     new_value = value.lower()
+    #     new_kwargs.update({new_key: new_value})
+    # db.session.query(models.Product).filter(func.lower(models.Product.name) == u'курага').all()
+    instance = session.query(model).filter_by(map(lambda **kwargs: func.lower(kwargs.items()[0]) == kwargs.get(kwargs.items()[0].lower())), **kwargs).all()
+    if instance:
+        return instance
+    else:
+        return None
 
 
 def check_object(session, model, **kwargs):
@@ -73,6 +88,10 @@ def update_all_status(session):
     for instance in session.query(Car):
         instance.status = 0
     session.commit()
+
+
+def add_kit(session, kit, Car):
+    check = check_object(session, Kit, kit=kit)
 
 
 def check_start_id(session):

@@ -1,11 +1,11 @@
 import requests
 import json
 import time
-from common.create_db import Part
+from common.create_db import Part, Car
 from common.db_command import add_car, add_part, check_object, update_all_status, check_start_id,\
-    add_image, start_session, check_date
+    add_image, start_session, check_date, check_all_objects
 from common.common import ADDRESS_FOR_YEAR, ADDRESS_MAKE, ADDRESS_MODEL, ADDRESS_ENGINE, ADDRESS_PARTS, ADDRESS_IMAGE,\
-    ADDRESS_PART
+    ADDRESS_PART, ADDRESS_FOR_MARKS_KIT, ADDRESS_ENGINE_FOR_KIT, ADDRESS_FOR_TAKE_KITS
 
 
 def take_data_get(address):
@@ -17,7 +17,11 @@ def take_data_get(address):
             try:
                 data = json.loads(rough_data)
             except TypeError:
-                data = rough_data.get('list_partdetails')
+                data = rough_data
+            # except TypeError:
+            #     data = rough_data.get('list_partdetails')
+            # except:
+            #     data = rough_data.get('list_kitpartdetails')
             return data
         except:
             print(f'Ошибка соеденения с адресом {address} попытка №{attempt}')
@@ -53,6 +57,28 @@ def create_dict(arg, str_parce):
     return result
 
 
+def crate_part_kit():
+    session = start_session()
+    marks_list = take_data_get(ADDRESS_FOR_MARKS_KIT)
+    for i in marks_list:
+        rough_current_mark = i.get('vehicle')
+        try:
+            current_mark = rough_current_mark.split(' - ')[0].split(',')
+        except:
+            current_mark = rough_current_mark.split(' - ')
+        print(current_mark)
+        current_mark_for_request = rough_current_mark.replace(' ', '+').replace(',', '%2C')
+        engine_list = take_data_get(f'{ADDRESS_ENGINE_FOR_KIT}{current_mark_for_request}')
+        for mark in current_mark:
+            for engine in engine_list:
+                engine_name = engine.get('VehicleConfig')
+                engine_number = engine.get('eng_partno')
+                engine_for_search = f'{engine_number} | {engine_name}'
+                print(mark)
+                car_list = check_all_objects(session, Car, brand_car=mark, engine_car=engine_for_search)
+                print(car_list)
+        exit()
+
 def create_part():
     session = start_session()
     data = check_start_id(session)
@@ -78,7 +104,8 @@ def create_part():
                                 current_engine_number = engine.get('EnginePartno')
                                 if data is None or data[2] == current_engine:
                                     address_for_get_part = f'{ADDRESS_PARTS}yearid={current_year}&makeid={current_mark_id}&modelname={current_model}&enginepartno={current_engine_number}'
-                                    parts_list = take_data_get(address_for_get_part)
+                                    parts_list_rough = take_data_get(address_for_get_part)
+                                    parts_list = parts_list_rough.get('list_partdetails')
                                     new_car = add_car(session, current_year, current_engine, current_mark, current_model, 1)
                                     print(f'Сканируем машину {current_mark}:{current_model} {current_year} '
                                           f'года, с двигателем : {current_engine}')
@@ -90,15 +117,6 @@ def create_part():
                                             part_data = take_data_post(
                                                 ADDRESS_PART,
                                                 {'partno': part_number, 'partdescription': part.get('partdescription')})
-                                            # part_attrresult = create_dict(part_data, 'str_attrresult')
-                                            # part_partresult = create_dict(part_data, 'str_Partresult')
-                                            # part_description.update(part_attrresult)
-                                            # part_description.update(part_partresult)
-                                            # part_description.update(part_data)
-                                            # part_description['attrs'] = create_dict(part_data, 'str_attrresult')
-                                            # part_description['part'] = create_dict(part_data, 'str_Partresult')
-                                            # part_description['interchange'] = create_dict(part_data, 'str_interchangeresult')
-                                            # part_description['package'] = create_dict(part_data, 'str_packageresult')
                                             part_description = {'part': part, 'data': part_data}
                                             description = json.dumps(part_description)
                                             answer_part = add_part(session, new_car, part_number, description, part_cost)
@@ -109,11 +127,11 @@ def create_part():
                                                     add_image(session, answer_part[0], address_image)
                                         else:
                                             add_part(session, new_car, part_number, 0, 0)
-                                    # update_status(new_car, 1)
                                     session.commit()
                                     data = None
     update_all_status(session)
 
 
 if __name__ == '__main__':
-    create_part()
+    # create_part()
+    crate_part_kit()

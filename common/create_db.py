@@ -13,6 +13,18 @@ association_table = Table('applicability', Enginetech.metadata,
                           UniqueConstraint('car', 'part')
                           )
 
+association_table_kit_part = Table('kits-part', Enginetech.metadata,
+                              Column('part', String, ForeignKey('parts.part')),
+                              Column('kit', String, ForeignKey('kits.kit')),
+                              UniqueConstraint('part', 'kit')
+                              )
+
+association_table_kit_car = Table('applicability-kits', Enginetech.metadata,
+                              Column('car', Integer, ForeignKey('cars.id')),
+                              Column('kit', String, ForeignKey('kits.kit')),
+                              UniqueConstraint('car', 'kit')
+                              )
+
 
 class Part(Enginetech):
     __tablename__ = 'parts'
@@ -67,7 +79,15 @@ class Image(Enginetech):
 
     def __init__(self, image):
         self.image = image
-        # self.part = part
+
+
+class Kit(Enginetech):
+    __tablename__ = 'kits'
+    id = Column(Integer, primary_key=True)
+    kit = Column(String, unique=True)
+
+    def __init__(self, kit):
+        self.kit = kit
 
 
 Enginetech.metadata.create_all(engine_db)

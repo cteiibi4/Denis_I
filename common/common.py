@@ -11,3 +11,4 @@ ADDRESS_PART = 'https://enginetechcatalog.com/Home/GetPartDetailsFromEngineSearc
 ADDRESS_FOR_MARKS_KIT = 'https://enginetechcatalog.com/Home/GetMake'
 ADDRESS_ENGINE_FOR_KIT = 'https://enginetechcatalog.com/Home/GetEngine?MakeName='  # AMC+-+HIGH+PERFORMANCE
 ADDRESS_FOR_TAKE_KITS = 'https://enginetechcatalog.com/Home/GetPartDetails?eng_partno='  # AM199HP&makename=AMC+-+HIGH+PERFORMANCE
+ADDRESS_FOR_KIT = 'ttps://enginetechcatalog.com/Home/kitpartnumberRecord?kitpartno='  # MKIS3.2AP&partdescription=DMK

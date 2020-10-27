@@ -3,9 +3,23 @@ import json
 import time
 from common.create_db import Part, Car
 from common.db_command import add_car, add_part, check_object, update_all_status, check_start_id,\
-    add_image, start_session, check_date, check_all_objects
+    add_image, start_session, check_date, add_kit
 from common.common import ADDRESS_FOR_YEAR, ADDRESS_MAKE, ADDRESS_MODEL, ADDRESS_ENGINE, ADDRESS_PARTS, ADDRESS_IMAGE,\
-    ADDRESS_PART, ADDRESS_FOR_MARKS_KIT, ADDRESS_ENGINE_FOR_KIT, ADDRESS_FOR_TAKE_KITS
+    ADDRESS_PART, ADDRESS_FOR_KIT, ADDRESS_ENGINE_FOR_KIT, ADDRESS_FOR_TAKE_KITS
+
+
+def take_parts_for_kit(kit, kit_type):
+    if kit_type == 'pr_master' or kit_type == 'master':
+        description = 'DMK'
+    elif kit_type == 'pr_recon' or kit_type == 'recon':
+        description = 'DRK'
+    else:
+        description = 'DREK'
+    address_for_request = f'{ADDRESS_FOR_KIT}{kit}&partdescription={description}'
+    all_description = take_data_get(address_for_request)
+    table_2 = json.loads(all_description.get('Table2'))
+    kit_part_list = [i.get('Partno') for i in table_2]
+    return kit_part_list
 
 
 def take_data_get(address):
@@ -56,28 +70,6 @@ def create_dict(arg, str_parce):
             result.update(i)
     return result
 
-
-def crate_part_kit():
-    session = start_session()
-    marks_list = take_data_get(ADDRESS_FOR_MARKS_KIT)
-    for i in marks_list:
-        rough_current_mark = i.get('vehicle')
-        try:
-            current_mark = rough_current_mark.split(' - ')[0].split(',')
-        except:
-            current_mark = rough_current_mark.split(' - ')
-        print(current_mark)
-        current_mark_for_request = rough_current_mark.replace(' ', '+').replace(',', '%2C')
-        engine_list = take_data_get(f'{ADDRESS_ENGINE_FOR_KIT}{current_mark_for_request}')
-        for mark in current_mark:
-            for engine in engine_list:
-                engine_name = engine.get('VehicleConfig')
-                engine_number = engine.get('eng_partno')
-                engine_for_search = f'{engine_number} | {engine_name}'
-                print(mark)
-                car_list = check_all_objects(session, Car, brand_car=mark, engine_car=engine_for_search)
-                print(car_list)
-        exit()
 
 def create_part():
     session = start_session()

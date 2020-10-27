@@ -2,6 +2,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
 from .create_db import Car, Part, Image, Kit, engine_db
 from datetime import datetime
+from main import take_parts_for_kit
 
 
 def start_session():
@@ -90,9 +91,14 @@ def update_all_status(session):
     session.commit()
 
 
-def add_kit(session, kit, Car):
+def add_kit(session, kit, kit_img, kit_type, Car):
     check = check_object(session, Kit, kit=kit)
+    if check is None:
+        new_kit = Kit(kit, kit_img, kit_type)
+        new_kit.cars.append(Car)
 
+    else:
+        check.cars.append(Car)
 
 def check_start_id(session):
     instance = session.query(Car).filter_by(status=0).first()

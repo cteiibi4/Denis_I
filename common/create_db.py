@@ -85,6 +85,8 @@ class Kit(Enginetech):
     __tablename__ = 'kits'
     id = Column(Integer, primary_key=True)
     kit = Column(String, unique=True)
+    kit_img = Column(String)
+    kit_type = Column(String)
 
     def __init__(self, kit):
         self.kit = kit

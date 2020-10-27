@@ -22,7 +22,7 @@ def check_all_objects(session, model, **kwargs):
     #     new_value = value.lower()
     #     new_kwargs.update({new_key: new_value})
     # db.session.query(models.Product).filter(func.lower(models.Product.name) == u'курага').all()
-    instance = session.query(model).filter_by(map(lambda **kwargs: func.lower(kwargs.items()[0]) == kwargs.get(kwargs.items()[0].lower())), **kwargs).all()
+    instance = session.query(model).filter_by(map(lambda **kwargs: func.lower(kwargs.items()[0]) == kwargs.get(kwargs.items()[0].lower()), **kwargs)).all()
     if instance:
         return instance
     else:

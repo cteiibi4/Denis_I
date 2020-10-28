@@ -22,6 +22,11 @@ def take_parts_for_kit(kit, kit_type):
     return kit_part_list
 
 
+def take_kit_args(kit_obj):
+    kit_list = json.loads(kit_obj)
+    
+
+
 def take_data_get(address):
     attempt = 1
     while attempt <= 20:
@@ -98,6 +103,7 @@ def create_part():
                                     address_for_get_part = f'{ADDRESS_PARTS}yearid={current_year}&makeid={current_mark_id}&modelname={current_model}&enginepartno={current_engine_number}'
                                     parts_list_rough = take_data_get(address_for_get_part)
                                     parts_list = parts_list_rough.get('list_partdetails')
+                                    kit_list = parts_list_rough.get('list_kitpartdetails')
                                     new_car = add_car(session, current_year, current_engine, current_mark, current_model, 1)
                                     print(f'Сканируем машину {current_mark}:{current_model} {current_year} '
                                           f'года, с двигателем : {current_engine}')
@@ -119,6 +125,8 @@ def create_part():
                                                     add_image(session, answer_part[0], address_image)
                                         else:
                                             add_part(session, new_car, part_number, 0, 0)
+                                        for kit in kit_list:
+
                                     session.commit()
                                     data = None
     update_all_status(session)

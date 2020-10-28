@@ -96,7 +96,13 @@ def add_kit(session, kit, kit_img, kit_type, Car):
     if check is None:
         new_kit = Kit(kit, kit_img, kit_type)
         new_kit.cars.append(Car)
-
+        kit_part_list = take_parts_for_kit(kit, kit_type)
+        for part in kit_part_list:
+            check_part = check_object(session, Part, part=part)
+            if check_part is not None:
+                check_part.kits.append(new_kit)
+            else:
+                print(f"Детали {part} не ненайдено")
     else:
         check.cars.append(Car)
 

@@ -2,9 +2,9 @@ import requests
 import json
 import time
 from common.create_db import Part, Car
-from common.db_command import add_car, add_part, check_object, update_all_status, check_start_id,\
+from common.db_command import add_car, add_part, check_object, update_all_status, check_start_id, \
     add_image, start_session, check_date, add_kit
-from common.common import ADDRESS_FOR_YEAR, ADDRESS_MAKE, ADDRESS_MODEL, ADDRESS_ENGINE, ADDRESS_PARTS, ADDRESS_IMAGE,\
+from common.common import ADDRESS_FOR_YEAR, ADDRESS_MAKE, ADDRESS_MODEL, ADDRESS_ENGINE, ADDRESS_PARTS, ADDRESS_IMAGE, \
     ADDRESS_PART, ADDRESS_FOR_KIT, ADDRESS_ENGINE_FOR_KIT, ADDRESS_FOR_TAKE_KITS
 
 
@@ -24,8 +24,20 @@ def take_parts_for_kit(kit, kit_type):
 
 def take_kit_args(kit_obj):
     kit_list = json.loads(kit_obj)
-    
-
+    dict_kit = {'pr_master': kit_list.get('pr_master'),
+                'pr_recon': kit_list.get('pr_recon'),
+                'pr_remain': kit_list.get('pr_remain'),
+                'master': kit_list.get('master'),
+                'recon': kit_list.get('recon'),
+                'remain': kit_list.get('remain'),
+                }
+    dict_kit_img = {'pr_master': kit_list.get('pr_master_img'),
+                    'pr_recon': kit_list.get('pr_recon_img'),
+                    'pr_remain': kit_list.get('pr_remain_img'),
+                    'master': kit_list.get('master_img'),
+                    'recon': kit_list.get('recon_img'),
+                    'remain': kit_list.get('remain_img'),
+                    }
 
 def take_data_get(address):
     attempt = 1
@@ -55,8 +67,8 @@ def take_data_post(address, dictionary):
     while attempt <= 20:
         try:
             response = requests.post(
-                        address,
-                        data=dictionary)
+                address,
+                data=dictionary)
             rough_part_data = response.content
             return json.loads(rough_part_data)
         except:
@@ -104,7 +116,8 @@ def create_part():
                                     parts_list_rough = take_data_get(address_for_get_part)
                                     parts_list = parts_list_rough.get('list_partdetails')
                                     kit_list = parts_list_rough.get('list_kitpartdetails')
-                                    new_car = add_car(session, current_year, current_engine, current_mark, current_model, 1)
+                                    new_car = add_car(session, current_year, current_engine, current_mark,
+                                                      current_model, 1)
                                     print(f'Сканируем машину {current_mark}:{current_model} {current_year} '
                                           f'года, с двигателем : {current_engine}')
                                     for part in parts_list:
@@ -117,7 +130,8 @@ def create_part():
                                                 {'partno': part_number, 'partdescription': part.get('partdescription')})
                                             part_description = {'part': part, 'data': part_data}
                                             description = json.dumps(part_description)
-                                            answer_part = add_part(session, new_car, part_number, description, part_cost)
+                                            answer_part = add_part(session, new_car, part_number, description,
+                                                                   part_cost)
                                             if answer_part[1] is True:
                                                 images = json.loads(part_data.get('str_Imageresult'))
                                                 for image in images:
@@ -125,7 +139,25 @@ def create_part():
                                                     add_image(session, answer_part[0], address_image)
                                         else:
                                             add_part(session, new_car, part_number, 0, 0)
-                                        for kit in kit_list:
+                                        for car_kit in kit_list:
+                                            kits_for_car = json.loads((car_kit))
+                                            dict_kit = {'pr_master': kits_for_car.get('pr_master'),
+                                                        'pr_recon': kits_for_car.get('pr_recon'),
+                                                        'pr_remain': kits_for_car.get('pr_remain'),
+                                                        'master': kits_for_car.get('master'),
+                                                        'recon': kits_for_car.get('recon'),
+                                                        'remain': kits_for_car.get('remain'),
+                                                        }
+                                            dict_kit_img = {'pr_master': kits_for_car.get('pr_master_img'),
+                                                            'pr_recon': kits_for_car.get('pr_recon_img'),
+                                                            'pr_remain': kits_for_car.get('pr_remain_img'),
+                                                            'master': kits_for_car.get('master_img'),
+                                                            'recon': kits_for_car.get('recon_img'),
+                                                            'remain': kits_for_car.get('remain_img'),
+                                                            }
+                                            for key, value in dict_kit:
+                                                if value is not None:
+                                                    add_kit(session, value, dict_kit_img.get('key'), key, new_car)
 
                                     session.commit()
                                     data = None
@@ -133,5 +165,4 @@ def create_part():
 
 
 if __name__ == '__main__':
-    # create_part()
-    crate_part_kit()
+    create_part()

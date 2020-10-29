@@ -3,7 +3,7 @@ import json
 import time
 from common.create_db import Part, Car
 from common.db_command import add_car, add_part, check_object, update_all_status, check_start_id, \
-    add_image, start_session, check_date, add_kit
+    add_image, start_session, check_date, add_kit, add_parts_in_kit
 from common.common import ADDRESS_FOR_YEAR, ADDRESS_MAKE, ADDRESS_MODEL, ADDRESS_ENGINE, ADDRESS_PARTS, ADDRESS_IMAGE, \
     ADDRESS_PART, ADDRESS_FOR_KIT, ADDRESS_ENGINE_FOR_KIT, ADDRESS_FOR_TAKE_KITS
 
@@ -21,23 +21,6 @@ def take_parts_for_kit(kit, kit_type):
     kit_part_list = [i.get('Partno') for i in table_2]
     return kit_part_list
 
-
-def take_kit_args(kit_obj):
-    kit_list = json.loads(kit_obj)
-    dict_kit = {'pr_master': kit_list.get('pr_master'),
-                'pr_recon': kit_list.get('pr_recon'),
-                'pr_remain': kit_list.get('pr_remain'),
-                'master': kit_list.get('master'),
-                'recon': kit_list.get('recon'),
-                'remain': kit_list.get('remain'),
-                }
-    dict_kit_img = {'pr_master': kit_list.get('pr_master_img'),
-                    'pr_recon': kit_list.get('pr_recon_img'),
-                    'pr_remain': kit_list.get('pr_remain_img'),
-                    'master': kit_list.get('master_img'),
-                    'recon': kit_list.get('recon_img'),
-                    'remain': kit_list.get('remain_img'),
-                    }
 
 def take_data_get(address):
     attempt = 1
@@ -139,26 +122,30 @@ def create_part():
                                                     add_image(session, answer_part[0], address_image)
                                         else:
                                             add_part(session, new_car, part_number, 0, 0)
-                                        for car_kit in kit_list:
-                                            kits_for_car = json.loads((car_kit))
-                                            dict_kit = {'pr_master': kits_for_car.get('pr_master'),
-                                                        'pr_recon': kits_for_car.get('pr_recon'),
-                                                        'pr_remain': kits_for_car.get('pr_remain'),
-                                                        'master': kits_for_car.get('master'),
-                                                        'recon': kits_for_car.get('recon'),
-                                                        'remain': kits_for_car.get('remain'),
+                                    for car_kit in kit_list:
+                                        if kit_list is not None:
+                                            print(f'Сканируем набор')
+                                        kits_for_car = json.loads(car_kit)
+                                        dict_kit = {'pr_master': kits_for_car.get('pr_master'),
+                                                    'pr_recon': kits_for_car.get('pr_recon'),
+                                                    'pr_remain': kits_for_car.get('pr_remain'),
+                                                    'master': kits_for_car.get('master'),
+                                                    'recon': kits_for_car.get('recon'),
+                                                    'remain': kits_for_car.get('remain'),
+                                                    }
+                                        dict_kit_img = {'pr_master': kits_for_car.get('pr_master_img'),
+                                                        'pr_recon': kits_for_car.get('pr_recon_img'),
+                                                        'pr_remain': kits_for_car.get('pr_remain_img'),
+                                                        'master': kits_for_car.get('master_img'),
+                                                        'recon': kits_for_car.get('recon_img'),
+                                                        'remain': kits_for_car.get('remain_img'),
                                                         }
-                                            dict_kit_img = {'pr_master': kits_for_car.get('pr_master_img'),
-                                                            'pr_recon': kits_for_car.get('pr_recon_img'),
-                                                            'pr_remain': kits_for_car.get('pr_remain_img'),
-                                                            'master': kits_for_car.get('master_img'),
-                                                            'recon': kits_for_car.get('recon_img'),
-                                                            'remain': kits_for_car.get('remain_img'),
-                                                            }
-                                            for key, value in dict_kit:
-                                                if value is not None:
-                                                    add_kit(session, value, dict_kit_img.get('key'), key, new_car)
-
+                                        for key, value in dict_kit:
+                                            if value is not None:
+                                                new_kit = add_kit(session, value, dict_kit_img.get(key), key, new_car)
+                                                if new_kit[1] is True:
+                                                    part_list_for_kit = take_parts_for_kit(value, key)
+                                                    add_parts_in_kit(session, part_list_for_kit, new_kit[0])
                                     session.commit()
                                     data = None
     update_all_status(session)

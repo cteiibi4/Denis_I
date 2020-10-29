@@ -2,7 +2,6 @@ from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
 from .create_db import Car, Part, Image, Kit, engine_db
 from datetime import datetime
-from main import take_parts_for_kit
 
 
 def start_session():
@@ -91,20 +90,25 @@ def update_all_status(session):
     session.commit()
 
 
+def add_parts_in_kit(session, part_list, Kit):
+    for part in part_list:
+        check_part = check_object(session, Part, part=part)
+        if check_part is not None:
+            check_part.kits.append(Kit)
+        else:
+            print(f"Детали {part} не ненайдено")
+
+
 def add_kit(session, kit, kit_img, kit_type, Car):
     check = check_object(session, Kit, kit=kit)
     if check is None:
         new_kit = Kit(kit, kit_img, kit_type)
         new_kit.cars.append(Car)
-        kit_part_list = take_parts_for_kit(kit, kit_type)
-        for part in kit_part_list:
-            check_part = check_object(session, Part, part=part)
-            if check_part is not None:
-                check_part.kits.append(new_kit)
-            else:
-                print(f"Детали {part} не ненайдено")
+        return new_kit, True
     else:
         check.cars.append(Car)
+        return check, False
+
 
 def check_start_id(session):
     instance = session.query(Car).filter_by(status=0).first()

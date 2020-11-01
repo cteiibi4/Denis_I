@@ -5,7 +5,7 @@ from common.create_db import Part, Car
 from common.db_command import add_car, add_part, check_object, update_all_status, check_start_id, \
     add_image, start_session, check_date, add_kit, add_parts_in_kit
 from common.common import ADDRESS_FOR_YEAR, ADDRESS_MAKE, ADDRESS_MODEL, ADDRESS_ENGINE, ADDRESS_PARTS, ADDRESS_IMAGE, \
-    ADDRESS_PART, ADDRESS_FOR_KIT, ADDRESS_ENGINE_FOR_KIT, ADDRESS_FOR_TAKE_KITS
+    ADDRESS_PART, ADDRESS_FOR_KIT
 
 
 def take_parts_for_kit(kit, kit_type):
@@ -17,7 +17,7 @@ def take_parts_for_kit(kit, kit_type):
         description = 'DREK'
     address_for_request = f'{ADDRESS_FOR_KIT}{kit}&partdescription={description}'
     all_description = take_data_get(address_for_request)
-    table_2 = json.loads(all_description.get('Table2'))
+    table_2 = all_description.get('Table2')
     kit_part_list = [i.get('Partno') for i in table_2]
     return kit_part_list
 
@@ -77,6 +77,7 @@ def create_part():
     year_list = take_data_get(ADDRESS_FOR_YEAR)
     for year_dict in year_list:
         current_year = year_dict.get('AA_Year')
+        # if current_year == 1980:
         if data is None or data[1] == current_year:
             address_for_get_marks = f'{ADDRESS_MAKE}{current_year}'
             marks_list = take_data_get(address_for_get_marks)
@@ -104,6 +105,7 @@ def create_part():
                                     print(f'Сканируем машину {current_mark}:{current_model} {current_year} '
                                           f'года, с двигателем : {current_engine}')
                                     for part in parts_list:
+                                        # take_part_data(session, part, new_car)
                                         part_number = part.get('Partno')
                                         check_part = check_object(session, Part, part=part_number)
                                         if check_part is None or check_date(check_part.update_date) > 30:
@@ -121,11 +123,9 @@ def create_part():
                                                     address_image = f'{ADDRESS_IMAGE}{image.get("AssetName")}'
                                                     add_image(session, answer_part[0], address_image)
                                         else:
-                                            add_part(session, new_car, part_number, 0, 0)
+                                            add_part(session, new_car, part_number, 'No description', 0)
                                     for car_kit in kit_list:
-                                        if kit_list is not None:
-                                            print(f'Сканируем набор')
-                                        kits_for_car = json.loads(car_kit)
+                                        kits_for_car = car_kit
                                         dict_kit = {'pr_master': kits_for_car.get('pr_master'),
                                                     'pr_recon': kits_for_car.get('pr_recon'),
                                                     'pr_remain': kits_for_car.get('pr_remain'),
@@ -140,12 +140,14 @@ def create_part():
                                                         'recon': kits_for_car.get('recon_img'),
                                                         'remain': kits_for_car.get('remain_img'),
                                                         }
-                                        for key, value in dict_kit:
-                                            if value is not None:
+                                        for key in dict_kit:
+                                            value = dict_kit[key]
+                                            if value is not None and len(value) > 1:
+                                                print(f'Сканируем набор {value}')
                                                 new_kit = add_kit(session, value, dict_kit_img.get(key), key, new_car)
                                                 if new_kit[1] is True:
                                                     part_list_for_kit = take_parts_for_kit(value, key)
-                                                    add_parts_in_kit(session, part_list_for_kit, new_kit[0])
+                                                    add_parts_in_kit(session, part_list_for_kit, new_kit[0], new_car)
                                     session.commit()
                                     data = None
     update_all_status(session)

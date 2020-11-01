@@ -35,7 +35,9 @@ class Part(Enginetech):
     cars = relationship('Car',
                         secondary=association_table,
                         back_populates='parts')
-    # images = relationship('Image')
+    kits = relationship('Kit',
+                        secondary=association_table_kit_part,
+                        back_populates='parts')
     images = relationship('Image', back_populates='part')
 
     def __init__(self, part, description, cost, update_date):
@@ -57,6 +59,9 @@ class Car(Enginetech):
     parts = relationship('Part',
                          secondary=association_table,
                          back_populates='cars')
+    kits = relationship('Kit',
+                        secondary=association_table_kit_car,
+                        back_populates='cars')
     UniqueConstraint(year, engine_car, brand_car, model_car)
 
     def __init__(self, year, engine_car, brand_car, model_car, status):
@@ -87,9 +92,17 @@ class Kit(Enginetech):
     kit = Column(String, unique=True)
     kit_img = Column(String)
     kit_type = Column(String)
+    cars = relationship('Car',
+                        secondary=association_table_kit_car,
+                        back_populates='kits')
+    parts = relationship('Part',
+                         secondary=association_table_kit_part,
+                         back_populates='kits')
 
-    def __init__(self, kit):
+    def __init__(self, kit, kit_img, kit_type):
         self.kit = kit
+        self.kit_img = kit_img
+        self.kit_type = kit_type
 
 
 Enginetech.metadata.create_all(engine_db)

@@ -108,7 +108,7 @@ def create_part():
                                         # take_part_data(session, part, new_car)
                                         part_number = part.get('Partno')
                                         check_part = check_object(session, Part, part=part_number)
-                                        if check_part is None or check_date(check_part.update_date) > 30:
+                                        if check_part is None or check_date(check_part.update_date) > 30 or check_part.description == 'No description':
                                             part_cost = part.get('userPrice')
                                             part_data = take_data_post(
                                                 ADDRESS_PART,

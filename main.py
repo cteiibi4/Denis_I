@@ -143,9 +143,9 @@ def create_part():
                                         for key in dict_kit:
                                             value = dict_kit[key]
                                             if value is not None and len(value) > 1:
-                                                print(f'Сканируем набор {value}')
                                                 new_kit = add_kit(session, value, dict_kit_img.get(key), key, new_car)
                                                 if new_kit[1] is True:
+                                                    print(f'Сканируем набор {value}')
                                                     part_list_for_kit = take_parts_for_kit(value, key)
                                                     add_parts_in_kit(session, part_list_for_kit, new_kit[0], new_car)
                                     session.commit()

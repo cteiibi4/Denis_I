@@ -1,5 +1,6 @@
+from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
-from .create_db import Car, Part, Image, engine_db
+from .create_db import Car, Part, Image, Kit, engine_db
 from datetime import datetime
 
 
@@ -12,6 +13,21 @@ def start_session():
 def add_object(session, object_request):
     new_object = object_request
     session.add(new_object)
+
+
+def check_all_objects(session, model, **kwargs):
+    # new_kwargs = {}
+    # for key, value in kwargs.items():
+    #     new_key = func.lower(key)
+    #     new_value = value.lower()
+    #     new_kwargs.update({new_key: new_value})
+    # db.session.query(models.Product).filter(func.lower(models.Product.name) == u'курага').all()
+    instance = session.query(model).filter_by(
+        map(lambda **kwargs: func.lower(kwargs.items()[0]) == kwargs.get(kwargs.items()[0].lower()), **kwargs)).all()
+    if instance:
+        return instance
+    else:
+        return None
 
 
 def check_object(session, model, **kwargs):
@@ -48,9 +64,12 @@ def add_part(session, Car, part, description, cost):
         return new_part, True
     else:
         update_date = check.update_date
-        if check_date(update_date) > 30:
-            check.update({Part.description: description, Part.cost: cost, Part.update_date: date_now},
-                         synchronize_session=False)
+        if check_date(update_date) > 30 or check.description == 'No description':
+            session.query(Part).filter(Part.part == part).update(
+                {Part.description: description, Part.cost: cost, Part.update_date: date_now},
+                synchronize_session=False)
+            # check.update({Part.description: description, Part.cost: cost, Part.update_date: date_now},
+            #              synchronize_session=False)
             check.cars.append(Car)
             return check, True
         else:
@@ -73,6 +92,28 @@ def update_all_status(session):
     for instance in session.query(Car):
         instance.status = 0
     session.commit()
+
+
+def add_parts_in_kit(session, part_list, Kit, Car):
+    for part in part_list:
+        check_part = check_object(session, Part, part=part)
+        if check_part is not None:
+            check_part.kits.append(Kit)
+        else:
+            print(f"Детали {part}, для набора {Kit.kit} не ненайдено")
+            new_part = add_part(session, Car, part, 'No description', 0)
+            new_part[0].kits.append(Kit)
+
+
+def add_kit(session, kit, kit_img, kit_type, Car):
+    check = check_object(session, Kit, kit=kit)
+    if check is None:
+        new_kit = Kit(kit, kit_img, kit_type)
+        new_kit.cars.append(Car)
+        return new_kit, True
+    else:
+        check.cars.append(Car)
+        return check, False
 
 
 def check_start_id(session):
